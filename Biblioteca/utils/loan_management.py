@@ -3,55 +3,58 @@ from tkinter import ttk, messagebox
 from tkcalendar import DateEntry
 from database.database import DatabaseConnection
 
-class LoanManagementFrame(tk.Frame):  # Cambiar para heredar de tk.Frame
+class LoanManagementFrame(tk.Frame):
     def __init__(self, parent):
-        super().__init__(parent)  # Llama al constructor de la clase base tk.Frame
+        super().__init__(parent)
         self.parent = parent
         self.create_widgets()
 
     def create_widgets(self):
+        main_frame = ttk.Frame(self, padding="20")
+        main_frame.pack(expand=True, fill="both")
+
         # Title
-        title = tk.Label(self, text="Loan Management", font=("Arial", 16, "bold"))
+        title = tk.Label(main_frame, text="Loan Management", font=("Arial", 16, "bold"))
         title.pack(pady=10)
 
         # Loan Book Section
-        loan_frame = tk.LabelFrame(self, text="Loan a Book")
+        loan_frame = ttk.LabelFrame(main_frame, text="Loan a Book", padding="10")
         loan_frame.pack(padx=10, pady=10, fill="x")
 
-        tk.Label(loan_frame, text="Book ID:").pack()
-        self.book_id_entry = tk.Entry(loan_frame)
+        ttk.Label(loan_frame, text="Book ID:").pack()
+        self.book_id_entry = ttk.Entry(loan_frame)
         self.book_id_entry.pack(pady=5)
 
-        tk.Label(loan_frame, text="Loan Date:").pack()
+        ttk.Label(loan_frame, text="Loan Date:").pack()
         self.loan_date_entry = DateEntry(loan_frame, date_pattern='yyyy-mm-dd')
         self.loan_date_entry.pack(pady=5)
 
-        tk.Button(loan_frame, text="Loan Book", command=self.loan_book).pack(pady=10)
+        ttk.Button(loan_frame, text="Loan Book", command=self.loan_book).pack(pady=10)
 
         # Show Loans Section
-        tk.Button(self, text="Show All Loans", command=self.show_loans).pack(pady=10)
+        ttk.Button(main_frame, text="Show All Loans", command=self.show_loans).pack(pady=10)
 
         # Treeview for displaying loans
-        self.tree = ttk.Treeview(self, columns=("Loan ID", "Book Name", "User ID", "Loan Date"), show="headings")
+        self.tree = ttk.Treeview(main_frame, columns=("Loan ID", "Book Name", "User ID", "Loan Date"), show="headings")
         for col in self.tree["columns"]:
             self.tree.heading(col, text=col)
             self.tree.column(col, width=100)
         self.tree.pack(pady=10, fill="both", expand=True)
 
         # Scrollbar for Treeview
-        scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.tree.yview)
+        scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=self.tree.yview)
         scrollbar.pack(side="right", fill="y")
         self.tree.configure(yscrollcommand=scrollbar.set)
 
         # Return Book Section
-        return_frame = tk.LabelFrame(self, text="Return a Book")
+        return_frame = ttk.LabelFrame(main_frame, text="Return a Book", padding="10")
         return_frame.pack(padx=10, pady=10, fill="x")
 
-        tk.Label(return_frame, text="Loan ID:").pack()
-        self.return_loan_id_entry = tk.Entry(return_frame)
+        ttk.Label(return_frame, text="Loan ID:").pack()
+        self.return_loan_id_entry = ttk.Entry(return_frame)
         self.return_loan_id_entry.pack(pady=5)
 
-        tk.Button(return_frame, text="Return Book", command=self.return_book).pack(pady=10)
+        ttk.Button(return_frame, text="Return Book", command=self.return_book).pack(pady=10)
 
     def loan_book(self):
         book_id = self.book_id_entry.get()

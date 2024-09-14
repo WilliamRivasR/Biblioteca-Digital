@@ -2,39 +2,42 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from database.database import DatabaseConnection
 
-class BookManagementFrame(tk.Frame):  # Cambiar para heredar de tk.Frame
+class BookManagementFrame(tk.Frame):
     def __init__(self, parent):
-        super().__init__(parent)  # Llama al constructor de la clase base tk.Frame
+        super().__init__(parent)
         self.parent = parent
         self.create_widgets()
 
     def create_widgets(self):
+        main_frame = ttk.Frame(self, padding="20")
+        main_frame.pack(expand=True, fill="both")
+
         # Title
-        title = tk.Label(self, text="Book Management", font=("Arial", 16, "bold"))
+        title = tk.Label(main_frame, text="Book Management", font=("Arial", 16, "bold"))
         title.pack(pady=10)
 
         # Add Book Section
-        add_book_frame = tk.LabelFrame(self, text="Add New Book")
+        add_book_frame = ttk.LabelFrame(main_frame, text="Add New Book", padding="10")
         add_book_frame.pack(padx=10, pady=10, fill="x")
 
         labels = ["Title:", "Author:", "Publication Year:", "Genre:", "Summary:", "Available Copies:", "Status:"]
         self.entries = {}
 
         for label in labels:
-            tk.Label(add_book_frame, text=label).pack()
+            ttk.Label(add_book_frame, text=label).pack()
             if label == "Publication Year:":
-                self.entries[label] = tk.Spinbox(add_book_frame, from_=1900, to=2100, format="%04.0f", width=5)
+                self.entries[label] = ttk.Spinbox(add_book_frame, from_=1900, to=2100, format="%04.0f", width=5)
             else:
-                self.entries[label] = tk.Entry(add_book_frame)
+                self.entries[label] = ttk.Entry(add_book_frame)
             self.entries[label].pack(pady=5)
 
-        tk.Button(add_book_frame, text="Add Book", command=self.add_book).pack(pady=10)
+        ttk.Button(add_book_frame, text="Add Book", command=self.add_book).pack(pady=10)
 
         # Show Available Books Section
-        tk.Button(self, text="Show Available Books", command=self.show_available_books).pack(pady=10)
+        ttk.Button(main_frame, text="Show Available Books", command=self.show_available_books).pack(pady=10)
 
         # Treeview for displaying books
-        self.tree = ttk.Treeview(self,
+        self.tree = ttk.Treeview(main_frame,
                                  columns=("ID", "Title", "Author", "Year", "Genre", "Summary", "Copies", "Status"),
                                  show="headings")
         for col in self.tree["columns"]:
@@ -43,7 +46,7 @@ class BookManagementFrame(tk.Frame):  # Cambiar para heredar de tk.Frame
         self.tree.pack(pady=10, fill="both", expand=True)
 
         # Scrollbar for Treeview
-        scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.tree.yview)
+        scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=self.tree.yview)
         scrollbar.pack(side="right", fill="y")
         self.tree.configure(yscrollcommand=scrollbar.set)
 

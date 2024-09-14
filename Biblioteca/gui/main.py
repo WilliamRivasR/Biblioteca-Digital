@@ -15,7 +15,7 @@ class MainApplication(tk.Tk):
         self.geometry("1200x700")
         self.configure(bg="#f0f0f0")
 
-        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
         self.create_frames()
@@ -30,9 +30,8 @@ class MainApplication(tk.Tk):
             frame = F(self)
             frame_name = F.__name__.lower().replace("frame", "")
             self.frames[frame_name] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
+            frame.grid(row=1, column=0, sticky="nsew")
             frame.grid_remove()
-
 
     def create_menu(self):
         self.menu_bar = tk.Menu(self)
@@ -52,12 +51,12 @@ class MainApplication(tk.Tk):
         for frame in self.frames.values():
             frame.grid_remove()
         frame = self.frames[frame_name]
-        frame.grid()
+        frame.grid(row=1, column=0, sticky="nsew")
 
-        if frame_name == "login":
+        if frame_name in ["login", "registration"]:
             self.nav_bar.frame.grid_remove()
         else:
-            self.nav_bar.frame.grid()
+            self.nav_bar.frame.grid(row=0, column=0, sticky="ew")
 
     def logout(self):
         self.show_frame("login")

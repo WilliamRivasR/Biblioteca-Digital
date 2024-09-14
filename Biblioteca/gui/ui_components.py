@@ -11,17 +11,23 @@ class NavigationBar:
 
     def create_widgets(self):
         for page_name, page_obj in self.pages.items():
-            btn = ttk.Button(self.frame, text=page_name.capitalize(), command=lambda p=page_obj: self.show_page(p))
-            btn.pack(side=tk.LEFT, padx=5, pady=5)
-            self.buttons[page_name] = btn
+            if page_name not in ["login", "registration"]:
+                btn = ttk.Button(self.frame, text=page_name.capitalize().replace("_", " "),
+                                 command=lambda p=page_name: self.parent.show_frame(p))
+                btn.pack(side=tk.LEFT, padx=5, pady=5)
+                self.buttons[page_name] = btn
 
-    def show_page(self, page):
-        for p in self.pages.values():
-            p.grid_remove()
-        page.grid(row=0, column=0, sticky="nsew")
+    def show_page(self, page_name):
+        self.parent.show_frame(page_name)
 
     def pack(self):
         self.frame.pack(side=tk.TOP, fill=tk.X)
+
+    def grid(self, **kwargs):
+        self.frame.grid(**kwargs)
+
+    def grid_remove(self):
+        self.frame.grid_remove()
 
 class StatusBar:
     def __init__(self, parent):
