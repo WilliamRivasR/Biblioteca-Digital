@@ -1,22 +1,20 @@
 -- --------------------------------------------------------
 -- Host:                         127.0.0.1
--- Versión del servidor:         10.4.32-MariaDB - mariadb.org binary distribution
+-- Versión del servidor:         10.9.2-MariaDB - mariadb.org binary distribution
 -- SO del servidor:              Win64
--- HeidiSQL Versión:             12.8.0.6908
+-- HeidiSQL Versión:             11.3.0.6295
 -- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET NAMES utf8 */;
 /*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 
 -- Volcando estructura de base de datos para biblioteca_escolar
-CREATE DATABASE IF NOT EXISTS `biblioteca_escolar` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */;
+CREATE DATABASE IF NOT EXISTS `biblioteca_escolar` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
 USE `biblioteca_escolar`;
 
 -- Volcando estructura para procedimiento biblioteca_escolar.ActualizarUsuario
@@ -58,21 +56,50 @@ BEGIN
 END//
 DELIMITER ;
 
+-- Volcando estructura para procedimiento biblioteca_escolar.AgregarImagen
+DELIMITER //
+CREATE PROCEDURE `AgregarImagen`(
+    IN p_image_name VARCHAR(255),
+    IN p_image_path VARCHAR(255),
+    OUT p_image_id INT
+)
+BEGIN
+    INSERT INTO imagenes (nombre_imagen, ruta_imagen)
+    VALUES (p_image_name, p_image_path);
+
+    SET p_image_id = LAST_INSERT_ID();
+END//
+DELIMITER ;
+
 -- Volcando estructura para procedimiento biblioteca_escolar.AgregarLibro
 DELIMITER //
 CREATE PROCEDURE `AgregarLibro`(
-    IN p_Titulo VARCHAR(255),
-    IN p_Autor VARCHAR(255),
-    IN p_Año_publicacion YEAR,
-    IN p_Genero VARCHAR(100),
-    IN p_Resumen TEXT,
-    IN p_Ejemplares_disponibles INT,
-    IN p_Estado ENUM('bueno', 'malo', 'regular')
+	IN `p_Titulo` VARCHAR(255),
+	IN `p_Autor` VARCHAR(255),
+	IN `p_Año_publicacion` INT,
+	IN `p_Genero` VARCHAR(255),
+	IN `p_Resumen` TEXT,
+	IN `p_Ejemplares_disponibles` INT,
+	IN `p_Estado` VARCHAR(50)
 )
 BEGIN
+    DECLARE ID_libro INT;  -- Declarar la variable
+
     -- Insertar el nuevo libro en la tabla libros
     INSERT INTO libros (Titulo, Autor, Año_publicacion, Genero, Resumen, Ejemplares_disponibles, Estado)
     VALUES (p_Titulo, p_Autor, p_Año_publicacion, p_Genero, p_Resumen, p_Ejemplares_disponibles, p_Estado);
+
+    -- Obtener el ID del libro recién insertado
+    SET ID_libro = LAST_INSERT_ID();
+
+    -- Verificar si se encontró el ID
+    IF ID_libro IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se encontró el libro con el título proporcionado.';
+    END IF;
+
+    -- Devolver el ID del libro
+    SELECT ID_libro AS ID_libro;
+
 END//
 DELIMITER ;
 
@@ -130,9 +157,11 @@ CREATE TABLE IF NOT EXISTS `autores` (
   `Fecha_nacimiento` date DEFAULT NULL,
   `Biografia` text DEFAULT NULL,
   PRIMARY KEY (`ID_autor`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Volcando datos para la tabla biblioteca_escolar.autores: ~0 rows (aproximadamente)
+/*!40000 ALTER TABLE `autores` DISABLE KEYS */;
+/*!40000 ALTER TABLE `autores` ENABLE KEYS */;
 
 -- Volcando estructura para procedimiento biblioteca_escolar.BorrarUsuario
 DELIMITER //
@@ -164,9 +193,29 @@ CREATE TABLE IF NOT EXISTS `categorias` (
   `Nombre` varchar(255) NOT NULL,
   `Descripcion` text DEFAULT NULL,
   PRIMARY KEY (`ID_categoria`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Volcando datos para la tabla biblioteca_escolar.categorias: ~0 rows (aproximadamente)
+/*!40000 ALTER TABLE `categorias` DISABLE KEYS */;
+/*!40000 ALTER TABLE `categorias` ENABLE KEYS */;
+
+-- Volcando estructura para tabla biblioteca_escolar.imagenes
+CREATE TABLE IF NOT EXISTS `imagenes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ID_libro` int(11) DEFAULT NULL,
+  `nombre_imagen` varchar(255) DEFAULT NULL,
+  `ruta_imagen` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4;
+
+-- Volcando datos para la tabla biblioteca_escolar.imagenes: ~3 rows (aproximadamente)
+/*!40000 ALTER TABLE `imagenes` DISABLE KEYS */;
+REPLACE INTO `imagenes` (`id`, `ID_libro`, `nombre_imagen`, `ruta_imagen`) VALUES
+	(8, NULL, '769856856772.png', 'C:/Users/311/Pictures/769856856772.png'),
+	(9, NULL, '769856856772.png', 'C:/Users/311/Pictures/769856856772.png'),
+	(10, 48, '2.png', 'C:/Users/311/Pictures/2.png'),
+	(11, NULL, '54', '2.png');
+/*!40000 ALTER TABLE `imagenes` ENABLE KEYS */;
 
 -- Volcando estructura para procedimiento biblioteca_escolar.InsertarUsuario
 DELIMITER //
@@ -225,16 +274,18 @@ CREATE TABLE IF NOT EXISTS `libros` (
   `Resumen` text DEFAULT NULL,
   `Ejemplares_disponibles` int(11) NOT NULL DEFAULT 1,
   `Estado` enum('bueno','regular','malo') NOT NULL DEFAULT 'bueno',
+  `Image_ID` int(11) DEFAULT NULL,
   PRIMARY KEY (`ID_libro`),
   KEY `Titulo` (`Titulo`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4;
 
--- Volcando datos para la tabla biblioteca_escolar.libros: ~4 rows (aproximadamente)
-REPLACE INTO `libros` (`ID_libro`, `Titulo`, `Autor`, `Año_publicacion`, `Genero`, `Resumen`, `Ejemplares_disponibles`, `Estado`) VALUES
-	(1, 'Las Aventuras de María', 'Pepe', '2006', 'Terror', NULL, 1, 'bueno'),
-	(2, 'Pepito y sus amigos', 'Pepito2', '2032', 'Terror', '', 400, 'bueno'),
-	(8, '', '', '0000', '', '', 1, ''),
-	(9, '', '', '0000', '', '', 1, '');
+-- Volcando datos para la tabla biblioteca_escolar.libros: ~6 rows (aproximadamente)
+/*!40000 ALTER TABLE `libros` DISABLE KEYS */;
+REPLACE INTO `libros` (`ID_libro`, `Titulo`, `Autor`, `Año_publicacion`, `Genero`, `Resumen`, `Ejemplares_disponibles`, `Estado`, `Image_ID`) VALUES
+	(1, 'Las Aventuras de María', 'Pepe', '2006', 'Terror', NULL, 1, 'bueno', NULL),
+	(2, 'Pepito y sus amigos', 'Pepito2', '2032', 'Terror', '', 400, 'bueno', NULL),
+	(54, '2', '2', '2002', '2', '2', 2, 'regular', NULL);
+/*!40000 ALTER TABLE `libros` ENABLE KEYS */;
 
 -- Volcando estructura para tabla biblioteca_escolar.multas
 CREATE TABLE IF NOT EXISTS `multas` (
@@ -248,9 +299,11 @@ CREATE TABLE IF NOT EXISTS `multas` (
   PRIMARY KEY (`ID_multa`),
   KEY `ID_prestamo` (`ID_prestamo`),
   CONSTRAINT `multas_ibfk_1` FOREIGN KEY (`ID_prestamo`) REFERENCES `prestamos` (`ID_prestamo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Volcando datos para la tabla biblioteca_escolar.multas: ~0 rows (aproximadamente)
+/*!40000 ALTER TABLE `multas` DISABLE KEYS */;
+/*!40000 ALTER TABLE `multas` ENABLE KEYS */;
 
 -- Volcando estructura para procedimiento biblioteca_escolar.ObtenerLibrosDisponibles
 DELIMITER //
@@ -258,6 +311,18 @@ CREATE PROCEDURE `ObtenerLibrosDisponibles`()
 BEGIN
     SELECT * FROM libros
     WHERE Ejemplares_disponibles > 0;
+END//
+DELIMITER ;
+
+-- Volcando estructura para procedimiento biblioteca_escolar.ObtenerUbicacionImagen
+DELIMITER //
+CREATE PROCEDURE `ObtenerUbicacionImagen`(
+    IN p_image_id INT
+)
+BEGIN
+    SELECT ruta_imagen
+    FROM imagenes
+    WHERE id = p_image_id;
 END//
 DELIMITER ;
 
@@ -272,9 +337,10 @@ CREATE TABLE IF NOT EXISTS `prestamos` (
   KEY `ID_usuario` (`Documento_usuario`) USING BTREE,
   CONSTRAINT `prestamos_ibfk_1` FOREIGN KEY (`ID_libro`) REFERENCES `libros` (`ID_libro`),
   CONSTRAINT `prestamos_ibfk_2` FOREIGN KEY (`Documento_usuario`) REFERENCES `usuarios` (`Numero_documento`)
-) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=47 DEFAULT CHARSET=utf8mb4;
 
 -- Volcando datos para la tabla biblioteca_escolar.prestamos: ~10 rows (aproximadamente)
+/*!40000 ALTER TABLE `prestamos` DISABLE KEYS */;
 REPLACE INTO `prestamos` (`ID_prestamo`, `ID_libro`, `Documento_usuario`, `Fecha_prestamo`) VALUES
 	(32, 1, '5962225', '2024-08-07'),
 	(33, 1, '5962225', '2024-08-07'),
@@ -286,6 +352,7 @@ REPLACE INTO `prestamos` (`ID_prestamo`, `ID_libro`, `Documento_usuario`, `Fecha
 	(39, 1, '5962225', '2024-08-10'),
 	(41, 1, '5962225', '2024-08-10'),
 	(42, 2, '5962225', '2024-08-10');
+/*!40000 ALTER TABLE `prestamos` ENABLE KEYS */;
 
 -- Volcando estructura para tabla biblioteca_escolar.usuarios
 CREATE TABLE IF NOT EXISTS `usuarios` (
@@ -303,13 +370,15 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
   PRIMARY KEY (`ID_usuario`),
   UNIQUE KEY `Numero_documento` (`Numero_documento`),
   UNIQUE KEY `Correo_electronico` (`Correo_electronico`)
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4;
 
 -- Volcando datos para la tabla biblioteca_escolar.usuarios: ~3 rows (aproximadamente)
+/*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
 REPLACE INTO `usuarios` (`ID_usuario`, `Tipo_usuario`, `Nombre`, `Apellidos`, `Tipo_documento`, `Numero_documento`, `Fecha_nacimiento`, `Correo_electronico`, `Contraseña`, `Telefono`, `LIbros_prestados`) VALUES
 	(1, 'estudiante', 'William Jose', 'Rivas', 'PPT', '5962225', '2007-09-26', 'williamjoserrs@gmail.com', '1234', '3195046735', ''),
 	(22, 'estudiante', 'Willy', 'Rojas', 'TI', '9876543', '1600-08-07', 'willy@gmail.com', '4321', '3204264533', ''),
 	(23, 'docente', 'James', 'Mosquera', 'CC', '60347266', '1982-08-24', 'james@gmail.com', '1234', '3124467324', NULL);
+/*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 
 -- Volcando estructura para procedimiento biblioteca_escolar.VerificarUsuario
 DELIMITER //
@@ -333,7 +402,6 @@ BEGIN
 END//
 DELIMITER ;
 
-/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -12,7 +12,8 @@ class MainApplication(tk.Tk):
         super().__init__()
 
         self.title("Biblioteca Escolar")
-        self.geometry("1200x700")
+        self.geometry("800x600")
+        self.resizable(False, False)  # Allow window resizing
         self.configure(bg="#f0f0f0")
 
         self.grid_rowconfigure(1, weight=1)
@@ -55,8 +56,13 @@ class MainApplication(tk.Tk):
 
         if frame_name in ["login", "registration"]:
             self.nav_bar.frame.grid_remove()
+            self.geometry("800x600")  # Reset to default size for login/registration
         else:
             self.nav_bar.frame.grid(row=0, column=0, sticky="ew")
+            if frame_name == "bookmanagement":
+                self.geometry("1200x800")  # Set larger size for book management
+            else:
+                self.geometry("800x600")  # Reset to default size for other frames
 
     def logout(self):
         self.show_frame("login")
