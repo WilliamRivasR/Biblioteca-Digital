@@ -1,95 +1,117 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from database.database import DatabaseConnection
-from PIL import Image, ImageTk
-import tkinter.filedialog as fd
 
 
 class BookManagementFrame(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        self.image_path = None  # Variable para almacenar la ruta de la imagen
         self.create_widgets()
+        self.configure(bg="#6287bf")  # Fondo principal
+
 
     def create_widgets(self):
-        main_frame = ttk.Frame(self, padding="20")
+        main_frame = ttk.Frame(self, padding="20", style='Main.TFrame')  # Fondo principal
         main_frame.pack(expand=True, fill="both")
 
+        # Configurar el estilo para usar el color de fondo
+        style = ttk.Style()
+        style.configure('Main.TFrame', background='#6287bf')
+        style.configure('TFrame', background='#2b4054')
+        style.configure('TLabel', background='#6287bf', foreground="black")
+        style.configure('TLabelframe', background='#2b4054', foreground="black")
+        style.configure('TLabelframe.Label', background='#2b4054', foreground="black")
+        style.configure('TButton', background='#2b4054', foreground="black")
+
         # Title
-        title = tk.Label(main_frame, text="Book Management", font=("Arial", 16, "bold"))
+        title = tk.Label(main_frame, text="Book Management", font=("Arial", 16, "bold"), bg="#6287bf", fg="white")
         title.pack(pady=10)
 
         # Content frame
-        content_frame = ttk.Frame(main_frame)
+        content_frame = ttk.Frame(main_frame, style='TFrame')
         content_frame.pack(expand=True, fill="both")
 
+        # Left frame for Add Book and Treeview
+        left_frame = ttk.Frame(content_frame)
+        left_frame.pack(side="left", fill="both", expand=True)
+
         # Add Book Section
-        add_book_frame = ttk.LabelFrame(content_frame, text="Add New Book", padding="10")
-        add_book_frame.pack(side="left", padx=10, pady=10, fill="y")
+        add_book_frame = ttk.LabelFrame(left_frame, text="Add New Book", padding="10", style='TLabelframe')
+        add_book_frame.pack(padx=10, pady=10, fill="x")
+
+        # Center the input fields
+        add_book_frame.grid_columnconfigure(0, weight=1)
+        add_book_frame.grid_columnconfigure(2, weight=1)
 
         labels = ["Title:", "Author:", "Publication Year:", "Genre:", "Summary:", "Available Copies:", "Status:"]
         self.entries = {}
 
         for i, label in enumerate(labels):
-            ttk.Label(add_book_frame, text=label).grid(row=i, column=0, sticky="e", padx=(0, 5), pady=5)
+            ttk.Label(add_book_frame, text=label).grid(row=i, column=1, sticky="e", padx=(0, 5), pady=5)
             if label == "Publication Year:":
-                self.entries[label] = ttk.Spinbox(add_book_frame, from_=1900, to=2100, format="%04.0f", width=20)
+                self.entries[label] = ttk.Spinbox(add_book_frame, from_=1900, to=2100, format="%04.0f", width=40)
             elif label == "Summary:":
-                self.entries[label] = tk.Text(add_book_frame, height=3, width=40)
+                self.entries[label] = tk.Text(add_book_frame, height=3, width=40, bg="#ffffff", fg="black")
             else:
                 self.entries[label] = ttk.Entry(add_book_frame, width=40)
-            self.entries[label].grid(row=i, column=1, sticky="w", pady=5)
-
-        # Botón para seleccionar imagen
-        ttk.Button(add_book_frame, text="Upload Book Image", command=self.upload_image).grid(row=len(labels), column=0,
-                                                                                             columnspan=2, pady=10)
+            self.entries[label].grid(row=i, column=2, sticky="w", pady=5)
 
         # Botón para agregar libro
-        ttk.Button(add_book_frame, text="Add Book", command=self.add_book).grid(row=len(labels) + 1, column=0,
-                                                                                columnspan=2, pady=10)
+        ttk.Button(add_book_frame, text="Add Book", command=self.add_book).grid(row=len(labels), column=1, columnspan=2,
+                                                                                pady=10)
 
-        # Image display
-        image_frame = ttk.Frame(content_frame)
-        image_frame.pack(side="right", padx=10, pady=10)
-
-        self.image_label = ttk.Label(image_frame)
-        self.image_label.pack()
-
-        self.load_image(1)  # Load image with ID 1
+        add_book_frame.grid_columnconfigure(0, weight=1)
+        add_book_frame.grid_columnconfigure(1, weight=1)
 
         # Show Available Books Section
-        ttk.Button(main_frame, text="Show Available Books", command=self.show_available_books).pack(pady=10)
+        ttk.Button(left_frame, text="Show Available Books", command=self.show_available_books).pack(pady=10)
 
         # Treeview for displaying books
-        self.tree = ttk.Treeview(main_frame,
+        self.tree = ttk.Treeview(left_frame,
                                  columns=("ID", "Title", "Author", "Year", "Genre", "Summary", "Copies", "Status"),
-                                 show="headings")
+                                 show="headings", height=10)
         for col in self.tree["columns"]:
             self.tree.heading(col, text=col)
             self.tree.column(col, width=100)
         self.tree.pack(pady=10, fill="both", expand=True)
 
         # Scrollbar for Treeview
-        scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=self.tree.yview)
+        scrollbar = ttk.Scrollbar(left_frame, orient="vertical", command=self.tree.yview)
         scrollbar.pack(side="right", fill="y")
         self.tree.configure(yscrollcommand=scrollbar.set)
 
-    def upload_image(self):
-        # Abrir diálogo para seleccionar imagen
-        file_path = fd.askopenfilename(filetypes=[("Image files", "*.jpg;*.png;*.jpeg")])
-        if file_path:
-            self.image_path = file_path  # Guardar la ruta de la imagen
-            image = Image.open(file_path)
-            image = image.resize((200, 300), Image.LANCZOS)
-            photo = ImageTk.PhotoImage(image)
-            self.image_label.configure(image=photo)
-            self.image_label.image = photo
+        # Bind the TreeviewSelect event
+        self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
+
+        # Right frame for book details
+        self.right_frame = ttk.Frame(content_frame, padding="20", style='TFrame')
+        self.right_frame.pack(side="right", fill="both", expand=True)
+
+        # Labels for book details
+        self.book_title_label = ttk.Label(self.right_frame, text="", font=("Arial", 14, "bold"), wraplength=300)
+        self.book_title_label.pack(pady=(0, 10))
+
+        self.book_summary_label = ttk.Label(self.right_frame, text="", wraplength=300, justify="left")
+        self.book_summary_label.pack(pady=10)
+
+    def on_tree_select(self, event):
+        selected_item = self.tree.selection()[0]
+        book = self.tree.item(selected_item)
+        title = book['values'][1]  # Título es la segunda columna
+        summary = book['values'][5]  # Resumen es la sexta columna
+
+        # Actualizar las etiquetas con la información del libro seleccionado
+        self.book_title_label.config(text=title)
+        self.book_summary_label.config(text=summary)
 
     def add_book(self):
-        # Obtener los datos del formulario
+        # Diccionario para almacenar los datos del libro
         book_data = {}
+
+        # Iterar sobre las entradas del formulario
         for label, entry in self.entries.items():
+            # Obtener el valor del campo
             value = entry.get() if not isinstance(entry, tk.Text) else entry.get("1.0", tk.END).strip()
 
             # Validación para el campo 'Publication Year' que no debe estar vacío
@@ -101,18 +123,15 @@ class BookManagementFrame(tk.Frame):
             else:
                 book_data[label.rstrip(':')] = value
 
+        # Conexión a la base de datos
         with DatabaseConnection() as db:
             try:
                 # Insertar el libro y obtener el ID del libro recién insertado
-                result = db.call_procedure('AgregarLibro', list(book_data.values()))
+                result = db.call_procedure(proc_name='AgregarLibro', params=list(book_data.values()))
 
                 if result is not None:
-                    libro_id = result[0][0]  # Obtener el ID del libro recién insertado
-
-                    # Si hay una imagen cargada, insertarla en la tabla imagenes
-                    if self.image_path:
-                        self.insert_image_into_db(libro_id, self.image_path)
-                    messagebox.showinfo("Success", "Book and image added successfully!")
+                    # Mostrar mensaje de éxito
+                    messagebox.showinfo(title="Success", message="Book added successfully!")
 
                     # Limpiar el formulario
                     for entry in self.entries.values():
@@ -120,36 +139,14 @@ class BookManagementFrame(tk.Frame):
                             entry.delete("1.0", tk.END)
                         else:
                             entry.delete(0, tk.END)
-                    self.image_label.configure(image=None)  # Limpiar la imagen
-                    self.image_path = None  # Resetear la ruta de la imagen
+
                 else:
-                    messagebox.showerror("Error", "Failed to add book.")
-            except Exception as e:
-                messagebox.showerror("Error", f"Failed to add book: {str(e)}")
+                    # Mostrar mensaje de error si no se pudo insertar el libro
+                    messagebox.showerror(title="Error", message="Failed to add book.")
 
-    def insert_image_into_db(self, libro_id, image_path):
-        image_name = image_path.split("/")[-1]  # Extraer el nombre del archivo de la ruta
-        with DatabaseConnection() as db:
-            try:
-                # Insertar la imagen en la tabla imagenes con el libro_id
-                db.call_procedure('AgregarImagen', [libro_id, image_name, image_path])
-                messagebox.showinfo("Éxito", "Imagen subida con éxito!")
             except Exception as e:
-                messagebox.showerror("Error", f"Error al subir imagen: {str(e)}")
-
-    def load_image(self, image_id):
-        with DatabaseConnection() as db:
-            try:
-                result = db.call_procedure('ObtenerUbicacionImagen', [image_id])
-                if result:
-                    image_path = result[0][0]
-                    image = Image.open(image_path)
-                    image = image.resize((200, 300), Image.LANCZOS)
-                    photo = ImageTk.PhotoImage(image)
-                    self.image_label.configure(image=photo)
-                    self.image_label.image = photo
-            except Exception as e:
-                print(f"Failed to load image: {str(e)}")
+                # Mostrar mensaje de error con la excepción
+                messagebox.showerror("Error", message=f"Failed to add book: {str(e)}")
 
     def show_available_books(self):
         with DatabaseConnection() as db:
@@ -163,5 +160,3 @@ class BookManagementFrame(tk.Frame):
                     messagebox.showinfo("Info", "No available books found.")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to fetch books: {str(e)}")
-
-

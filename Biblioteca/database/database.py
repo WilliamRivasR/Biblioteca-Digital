@@ -14,8 +14,9 @@ class DatabaseConnection:
                 host='localhost',
                 database='biblioteca_escolar',
                 user='root',
-                password='1234'
+                password=''
             )
+
             if self.connection.is_connected():
                 self.cursor = self.connection.cursor()
                 print("Connected to MySQL database")
